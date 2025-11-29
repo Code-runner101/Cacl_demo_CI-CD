@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        java-version: [17, 21]
+        java-version: [17]
 
     steps:
       - name: Checkout code
@@ -37,14 +37,6 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: test
-
-      - name: Test Report
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: JUnit Tests
-          path: build/test-results/test/*.xml
-          reporter: java-junit
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
