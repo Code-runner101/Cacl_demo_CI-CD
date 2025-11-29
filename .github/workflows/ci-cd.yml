@@ -25,13 +25,23 @@ jobs:
           distribution: temurin
           java-version: ${{ matrix.java }}
 
-      # Сборка проекта в batch mode (без интерактивного режима)
+      # Сборка проекта
       - name: Build project
-        run: ./gradlew build -B --no-daemon
+        run: |
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            ./gradlew.bat -B --no-daemon build
+          else
+            ./gradlew -B --no-daemon build
+          fi
 
       # Запуск тестов
       - name: Run tests
-        run: ./gradlew test -B --no-daemon
+        run: |
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            ./gradlew.bat -B --no-daemon test
+          else
+            ./gradlew -B --no-daemon test
+          fi
 
       # Публикация результатов тестирования с уникальным именем для каждой ОС
       - name: Publish test results
