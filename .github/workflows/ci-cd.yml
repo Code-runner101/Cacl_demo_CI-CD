@@ -1,0 +1,78 @@
+name: CI/CD Pipeline
+
+# Триггер workflow при пуше в main ветку
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  # 1. Сборка и тестирование
+  build-and-test:
+    name: Build & Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        java: [17]
+    steps:
+      # Клонирование репозитория
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Установка Java
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ matrix.java }}
+
+      # Сборка проекта
+      - name: Build project
+        run: ./gradlew build
+
+      # Запуск тестов
+      - name: Run tests
+        run: ./gradlew test
+
+      # Публикация отчетов тестирования
+      - name: Publish test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: build/test-results/test/
+
+  # 2. Тестовый деплой
+  name: Test deploy
+  runs-on: ubuntu-latest
+  needs: build
+  steps:
+    - name: Deploy check
+      uses: actions/checkout@v4
+
+    - name: Deploy output
+      run: |
+        echo "Calc proj deploy"
+
+      # Docker деплой (только после успешной сборки и тестов)
+      #    name: Deploy via Docker
+      #    runs-on: ubuntu-latest
+      #    needs: build-and-test
+      #    steps:
+      #      - name: Checkout repository
+      #        uses: actions/checkout@v4
+      #
+      #      - name: Build Docker image
+      #        run: docker build -t calculator-demo .
+
+      # Пример деплоя через SSH на удаленный сервер
+#      - name: Deploy to server via SSH
+#        uses: appleboy/ssh-action@v0.1.6
+#        with:
+#          host: ${{ secrets.DEPLOY_HOST }}
+#          username: ${{ secrets.DEPLOY_USER }}
+#          key: ${{ secrets.DEPLOY_KEY }}
+#          port: ${{ secrets.DEPLOY_PORT }}
+#          script: |
+#            docker stop calculator-demo || true
+#            docker rm calculator-demo || true
+#            docker run -d -p 8090:8080 --name calculator-demo calculator-demo
